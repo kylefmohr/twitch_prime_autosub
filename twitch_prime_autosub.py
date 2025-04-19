@@ -2,10 +2,12 @@ import asyncio
 import os, time
 import nodriver
 from nodriver import cdp
+from pyvirtualdisplay import Display
 
 # change this to the Twitch streamer you want to subscribe to
 STREAMER_NAME = "gooffkings"
 
+global BUTTON_TEXT
 # if you have never subscribed to this streamer before, change this to "Subscribe", else leave it as is.
 BUTTON_TEXT = "Resubscribe"
 
@@ -46,9 +48,13 @@ async def load_cookies(tab):
         print("No cookies found to load.")
 
 async def main():
+    global BUTTON_TEXT
     try:
+        disp = Display(visible=False, size=(1920, 1080))
+        disp.start()
         # Start a browser
-        driver = await nodriver.start(headless=True)
+        driver = await nodriver.start(headless=False, 
+                                        browser_executable_path="/usr/bin/google-chrome")
         
         # Navigate to the Twitch channel using the driver.get method, which returns a tab
         tab = await driver.get("https://www.twitch.tv/" + STREAMER_NAME)
@@ -64,6 +70,7 @@ async def main():
         print("Page loaded successfully.")
         
         # Find and click the subscribe button
+        
         subscribe_button = await tab.find(BUTTON_TEXT, best_match=True)
         if subscribe_button:
             print("Found subscribe/resubscribe button.")
@@ -120,6 +127,9 @@ async def main():
         print(f"An error occurred: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        # Stop the display
+        disp.stop()
 
 if __name__ == "__main__":
     # Use nodriver.loop() to run the main function
